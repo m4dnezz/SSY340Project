@@ -1,10 +1,7 @@
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from itertools import chain
 from PIL import Image
-from torch.utils.data import Dataset
 from path import Path
-from torchvision.transforms import Compose
-from torchvision.transforms import ToTensor
 
 
 class FER2013(Dataset):
