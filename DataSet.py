@@ -6,6 +6,7 @@ from path import Path
 from torchvision.transforms import Compose
 from torchvision.transforms import ToTensor
 
+
 class FER2013(Dataset):
     def __init__(self, root, transform):
         """Constructor
@@ -62,22 +63,22 @@ class FER2013(Dataset):
         # Iterator over dog filpath
         angry_paths = self._collect_imgs_sub_dir(self.root / "angry")
         angry_paths_and_labels = map(lambda path: (path, self._angry_label), angry_paths)
-        
+
         disgust_paths = self._collect_imgs_sub_dir(self.root / "disgust")
         disgust_paths_and_labels = map(lambda path: (path, self._disgust_label), disgust_paths)
-        
+
         fear_paths = self._collect_imgs_sub_dir(self.root / "fear")
         fear_paths_and_labels = map(lambda path: (path, self._fear_label), fear_paths)
-        
+
         happy_paths = self._collect_imgs_sub_dir(self.root / "happy")
         happy_paths_and_labels = map(lambda path: (path, self._happy_label), happy_paths)
-        
+
         neutral_paths = self._collect_imgs_sub_dir(self.root / "neutral")
         neutral_paths_and_labels = map(lambda path: (path, self._neutral_label), neutral_paths)
-        
+
         sad_paths = self._collect_imgs_sub_dir(self.root / "sad")
         sad_paths_and_labels = map(lambda path: (path, self._sad_label), sad_paths)
-        
+
         surprise_paths = self._collect_imgs_sub_dir(self.root / "surprise")
         surprise_paths_and_labels = map(lambda path: (path, self._surprise_label), surprise_paths)
 
