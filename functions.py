@@ -1,6 +1,7 @@
 import torch
 from time import gmtime, strftime
 
+
 def output_to_label(z):
     """Map network output z to a hard label {0, 1, 2, ...}
 
@@ -10,7 +11,6 @@ def output_to_label(z):
         c (Tensor): Predicted class label for each sample in a batch
     """
     return torch.argmax(z, dim=1)
-
 
 
 def training_loop(
