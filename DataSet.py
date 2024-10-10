@@ -21,16 +21,16 @@ class FER2013(Dataset):
 
         self.root = root
         self.transform = transform
-        self._angry = 0
-        self._disgust = 1
-        self._fear = 2
-        self._happy = 3
-        self._neutral = 4
-        self._sad = 5
-        self._surpries = 6
+        self._angry_label = 0
+        self._disgust_label = 1
+        self._fear_label = 2
+        self._happy_label = 3
+        self._neutral_label = 4
+        self._sad_label = 5
+        self._surprise_label = 6
 
         # Collect samples, both cat and dog and store pairs of (filepath, label) in a simple list.
-        #self._samples = self._collect_samples()
+        self._samples = self._collect_samples()
 
     def __getitem__(self, index):
         """Get sample by index
@@ -54,26 +54,38 @@ class FER2013(Dataset):
         """Total number of samples"""
         return len(self._samples)
 
-    # def _collect_samples(self):
-    #     """Collect all paths and labels
+    def _collect_samples(self):
+        """Collect all paths and labels
 
-    #     Helper method for the constructor
-    #     """
-    #     # Iterator over dog filpath
-    #     dog_paths = self._collect_imgs_sub_dir(self.root / "dogs")
-    #     # Iterator of pairs (path, dog label)
-    #     # Again, we use the `map` function to create an iterator. It's use is not as common as the so called
-    #     # 'list comprehension' you've previously seen, but a good alternative to have seen.
-    #     dog_paths_and_labels = map(lambda path: (path, self._dog_label), dog_paths)
-    #     # Same for cats
-    #     cat_paths = self._collect_imgs_sub_dir(self.root / "cats")
-    #     cat_paths_and_labels = map(lambda path: (path, self._cat_label), cat_paths)
-    #     # Sorting is not strictly necessary, but filesystem globbing (wildcard search) is not deterministic,
-    #     # and consistency is nice when debugging.
-    #     return sorted(
-    #         list(chain(dog_paths_and_labels, cat_paths_and_labels)),
-    #         key=lambda x: x[0].stem,
-    #     )
+        Helper method for the constructor
+        """
+        # Iterator over dog filpath
+        angry_paths = self._collect_imgs_sub_dir(self.root / "angry")
+        angry_paths_and_labels = map(lambda path: (path, self._angry_label), angry_paths)
+        
+        disgust_paths = self._collect_imgs_sub_dir(self.root / "disgust")
+        disgust_paths_and_labels = map(lambda path: (path, self._disgust_label), disgust_paths)
+        
+        fear_paths = self._collect_imgs_sub_dir(self.root / "fear")
+        fear_paths_and_labels = map(lambda path: (path, self._fear_label), fear_paths)
+        
+        happy_paths = self._collect_imgs_sub_dir(self.root / "happy")
+        happy_paths_and_labels = map(lambda path: (path, self._happy_label), happy_paths)
+        
+        neutral_paths = self._collect_imgs_sub_dir(self.root / "neutral")
+        neutral_paths_and_labels = map(lambda path: (path, self._neutral_label), neutral_paths)
+        
+        sad_paths = self._collect_imgs_sub_dir(self.root / "sad")
+        sad_paths_and_labels = map(lambda path: (path, self._sad_label), sad_paths)
+        
+        surprise_paths = self._collect_imgs_sub_dir(self.root / "surprise")
+        surprise_paths_and_labels = map(lambda path: (path, self._surprise_label), surprise_paths)
+
+        return sorted(
+            list(chain(angry_paths_and_labels, disgust_paths_and_labels, fear_paths_and_labels, 
+                       happy_paths_and_labels, neutral_paths_and_labels, sad_paths_and_labels, surprise_paths_and_labels)),
+            key=lambda x: x[0].stem,
+        )
 
     @staticmethod
     def _collect_imgs_sub_dir(sub_dir: Path):

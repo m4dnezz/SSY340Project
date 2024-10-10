@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-# dimenstions of fc1 might be incorrect
+# dimenstions might be incorrect
 
 class ConvNeuralNet(nn.Module):
 #  Determine what layers and their order in CNN object 
@@ -14,7 +14,7 @@ class ConvNeuralNet(nn.Module):
         self.conv_layer4 = nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3)
         self.max_pool2 = nn.MaxPool2d(kernel_size = 2, stride = 2)
         
-        self.fc1 = nn.Linear(1600, 128)
+        self.fc1 = nn.Linear(5184, 128)
         self.relu1 = nn.ReLU()
         self.fc2 = nn.Linear(128, num_classes)
     
