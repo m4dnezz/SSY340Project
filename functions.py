@@ -1,5 +1,7 @@
 import torch
+import numpy as np
 from time import gmtime, strftime
+from matplotlib import pyplot as plt
 
 
 def output_to_label(z):
@@ -93,3 +95,29 @@ def validate(model, loss_fn, val_loader, device):
             acc_batch_avg = (hard_preds == labels).float().mean().item()
             val_acc_cum += acc_batch_avg
     return val_loss_cum / len(val_loader), val_acc_cum / len(val_loader)
+
+
+def train_val_plots(train_losses, train_accs, val_losses, val_accs, num_epochs):
+
+    # Loss Plot
+    plt.subplot(1, 2, 1)
+    plt.plot(np.linspace(1, num_epochs, len(train_losses)), train_losses, label='Training Loss', color='blue')
+    plt.plot(np.linspace(1, num_epochs, len(val_losses)), val_losses, label='Validation Loss', color='orange')
+    plt.title('Training and Validation Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.grid()
+
+    # Accuracy Plot
+    plt.subplot(1, 2, 2)
+    plt.plot(np.linspace(1, num_epochs, len(train_accs)), train_accs, label='Training Accuracy', color='blue')
+    plt.plot(np.linspace(1, num_epochs, len(val_accs)), val_accs, label='Validation Accuracy', color='orange')
+    plt.title('Training and Validation Accuracy')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend()
+    plt.grid()
+
+    plt.tight_layout()
+    plt.show()
