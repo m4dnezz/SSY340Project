@@ -1,11 +1,12 @@
 import torch
-import torchvision.transforms as transforms
 import random
+import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Subset
 from CNN import ConvNeuralNet
 from DataSet import FER2013
-from functions import training_loop, train_val_plots
+from functions import training_loop, train_val_plots, confmatrix
 from matplotlib import pyplot as plt
+
 # Data setup
 train_path = "./FER2013/train"
 test_path = "./FER2013/test"
@@ -51,7 +52,7 @@ test_dataloader = DataLoader(test_set, batch_size, shuffle=True, num_workers=wor
 # test_dataloader = DataLoader(small_test_set, batch_size, shuffle=True, num_workers=workers, pin_memory=True, prefetch_factor=2, persistent_workers=True)
 
 # Model setup
-num_epochs = 200  # For testing
+num_epochs = 50  # For testing
 num_classes = 7
 model = ConvNeuralNet(num_classes)
 
@@ -61,13 +62,15 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 loss_fn = torch.nn.CrossEntropyLoss()
 
 if __name__ == '__main__':
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # remember to use model.to(device), data.to(device)
-    print(f"Starting to train model, using {device} for training")
+    print(f"length of train set: {len(train_set)}")
+    print(f"length of test set: {len(test_set)}")
     model, train_losses, train_accs, val_losses, val_accs = training_loop(model, optimizer, loss_fn, train_dataloader,
-                                                                          test_dataloader, num_epochs, print_every=10000)
+                                                                          test_dataloader, num_epochs, print_every=1000)
     train_val_plots(train_losses, train_accs, val_losses, val_accs, num_epochs)
-    plt.close("all")
+    confmatrix(model, test_dataloader, num_classes)
+    plt.show()
+
 # TODO: Save model and data after each run
 # TODO: Visualize class imbalance (there is some)
-# TODO: Visualize confusion matrix
+# TODO: Weight classes so we learn from classes with less data
 # I get like 90% train acc but val acc wont go over 60%....
