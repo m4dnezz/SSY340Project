@@ -1,38 +1,48 @@
 import torch
 import torchvision.transforms as transforms
+import random
 from torch.utils.data import DataLoader, Subset
 from CNN import ConvNeuralNet
 from DataSet import FER2013
-from functions import train_epoch, training_loop, output_to_label, train_val_plots
+from functions import training_loop, train_val_plots
 from matplotlib import pyplot as plt
 # Data setup
 train_path = "./FER2013/train"
 test_path = "./FER2013/test"
 
 batch_size = 64
-my_trans = transforms.Compose([
+
+train_trans = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),  # Convert to single-channel grayscale
     transforms.Resize((48, 48)),  # Resize to ensure uniform size
-    transforms.RandomHorizontalFlip(),  # Randomly flip horizontally
-    transforms.RandomRotation(degrees=10),  # Rotate within ±10 degrees
-    transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),  # Slight translation
+    transforms.RandomHorizontalFlip(p=0.2),  # Randomly flip horizontally
+    transforms.RandomRotation(degrees=5),  # Rotate within ±10 degrees
+    transforms.RandomAffine(degrees=0, translate=(0.05, 0.05)),  # Slight translation
     transforms.RandomCrop(48, padding=4),  # Crop with padding
-    transforms.ColorJitter(brightness=0.2, contrast=0.2),  # Adjust brightness and contrast
+    transforms.ColorJitter(brightness=0.1, contrast=0.1),  # Adjust brightness and contrast
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.5], std=[0.5])  # Normalize for grayscale
 ])
+
+val_trans = transforms.Compose([
+    transforms.Grayscale(num_output_channels=1),
+    transforms.Resize((48, 48)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5], std=[0.5])
+])
+
 workers = 6
 
 # large set
-train_set = FER2013(train_path, transform=my_trans)
-test_set = FER2013(test_path, transform=my_trans)
+train_set = FER2013(train_path, transform=train_trans)
+test_set = FER2013(test_path, transform=val_trans)
 train_dataloader = DataLoader(train_set, batch_size, shuffle=True, num_workers=workers,
                               pin_memory=True, prefetch_factor=2, persistent_workers=True)
 test_dataloader = DataLoader(test_set, batch_size, shuffle=True, num_workers=workers,
                              pin_memory=True, prefetch_factor=2, persistent_workers=True)
 
 # Small set, sanity check. 98% train acc with this
-# sample_size = 1000  # Set this to the size of your subset
+# sample_size = 100  # Set this to the size of your subset
 # random_indices = random.sample(range(len(train_set)), sample_size)
 
 # small_train_set = Subset(train_set, random_indices)
@@ -41,7 +51,7 @@ test_dataloader = DataLoader(test_set, batch_size, shuffle=True, num_workers=wor
 # test_dataloader = DataLoader(small_test_set, batch_size, shuffle=True, num_workers=workers, pin_memory=True, prefetch_factor=2, persistent_workers=True)
 
 # Model setup
-num_epochs = 2  # For testing
+num_epochs = 200  # For testing
 num_classes = 7
 model = ConvNeuralNet(num_classes)
 
@@ -58,4 +68,6 @@ if __name__ == '__main__':
     train_val_plots(train_losses, train_accs, val_losses, val_accs, num_epochs)
     plt.close("all")
 # TODO: Save model and data after each run
+# TODO: Visualize class imbalance (there is some)
+# TODO: Visualize confusion matrix
 # I get like 90% train acc but val acc wont go over 60%....
