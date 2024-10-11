@@ -80,7 +80,7 @@ class FER2013(Dataset):
         surprise_paths_and_labels = map(lambda path: (path, self._surprise_label), surprise_paths)
 
         return sorted(
-            list(chain(angry_paths_and_labels, disgust_paths_and_labels, fear_paths_and_labels, 
+            list(chain(angry_paths_and_labels, disgust_paths_and_labels, fear_paths_and_labels,
                        happy_paths_and_labels, neutral_paths_and_labels, sad_paths_and_labels, surprise_paths_and_labels)),
             key=lambda x: x[0].stem,
         )
