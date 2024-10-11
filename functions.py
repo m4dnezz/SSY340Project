@@ -2,10 +2,12 @@ import torch
 import numpy as np
 from time import gmtime, strftime
 from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
 
 
 class EarlyStopping:
-    def __init__(self, patience=10, verbose=False):
+    def __init__(self, patience=100, verbose=False):
         self.patience = patience
         self.verbose = verbose
         self.counter = 0
@@ -48,7 +50,7 @@ def training_loop(
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     train_losses, train_accs, val_losses, val_accs = [], [], [], []
-    early_stopper = EarlyStopping(patience=10, verbose=10)
+    early_stopper = EarlyStopping(patience=100, verbose=True)
 
     for epoch in range(1, num_epochs + 1):
         model, train_loss, train_acc = train_epoch(
@@ -153,4 +155,27 @@ def train_val_plots(train_losses, train_accs, val_losses, val_accs, num_epochs):
     plt.grid()
 
     plt.tight_layout()
-    plt.show()
+
+
+def confmatrix(model, test_dataloader, num_classes):
+    model.eval()
+    all_preds = []
+    all_labels = []
+
+    with torch.no_grad():
+        for images, labels in test_dataloader:
+            images, labels = images.to(torch.device("cuda")), labels.to(torch.device("cuda"))
+            outputs = model(images)
+            _, predicted = torch.max(outputs, 1)
+            all_preds.extend(predicted.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+
+    # Calculate and plot confusion matrix
+    conf_mat = confusion_matrix(all_labels, all_preds)
+
+    # Plot the confusion matrix
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(conf_mat, annot=True, fmt='d', cmap='Blues', xticklabels=range(num_classes), yticklabels=range(num_classes))
+    plt.xlabel('Predicted Labels')
+    plt.ylabel('True Labels')
+    plt.title('Confusion Matrix')
