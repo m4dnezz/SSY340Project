@@ -4,6 +4,32 @@ from time import gmtime, strftime
 from matplotlib import pyplot as plt
 
 
+class EarlyStopping:
+    def __init__(self, patience=10, verbose=False):
+        self.patience = patience
+        self.verbose = verbose
+        self.counter = 0
+        self.best_loss = None
+        self.early_stop = False
+
+    def __call__(self, val_loss, model):
+        if self.best_loss is None:
+            self.best_loss = val_loss
+        elif val_loss < self.best_loss:
+            self.best_loss = val_loss
+            self.counter = 0
+            # Save the best model
+            torch.save(model.state_dict(), 'best_model.pth')
+            if self.verbose:
+                print(f'Validation loss improved to {val_loss:.4f}. Saving model...')
+        else:
+            self.counter += 1
+            if self.counter >= self.patience:
+                self.early_stop = True
+                if self.verbose:
+                    print(f'Early stopping triggered after {self.patience} epochs without improvement.')
+
+
 def output_to_label(z):
     """Map network output z to a hard label {0, 1, 2, ...}
 
@@ -22,6 +48,7 @@ def training_loop(
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     train_losses, train_accs, val_losses, val_accs = [], [], [], []
+    early_stopper = EarlyStopping(patience=10, verbose=10)
 
     for epoch in range(1, num_epochs + 1):
         model, train_loss, train_acc = train_epoch(
@@ -39,6 +66,12 @@ def training_loop(
         train_accs.extend(train_acc)
         val_losses.append(val_loss)
         val_accs.append(val_acc)
+
+        # Check for early stopping
+        if epoch > 50:
+            early_stopper(val_loss, model)
+            if early_stopper.early_stop:
+                break  # Exit
     return model, train_losses, train_accs, val_losses, val_accs
 
 
