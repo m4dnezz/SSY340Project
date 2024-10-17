@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Subset
 from CNN import ConvNeuralNet
 from DataSet import FER2013
-from functions import training_loop, train_val_plots, confmatrix
+from functions import training_loop, train_val_plots, confmatrix, image_predictions
 from matplotlib import pyplot as plt
 
 # Data setup
@@ -52,25 +52,29 @@ test_dataloader = DataLoader(test_set, batch_size, shuffle=True, num_workers=wor
 # test_dataloader = DataLoader(small_test_set, batch_size, shuffle=True, num_workers=workers, pin_memory=True, prefetch_factor=2, persistent_workers=True)
 
 # Model setup
-num_epochs = 50  # For testing
+num_epochs = 200  # For testing
 num_classes = 7
 model = ConvNeuralNet(num_classes)
 
 # Training setup
 learning_rate = 0.001
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+# optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
 loss_fn = torch.nn.CrossEntropyLoss()
 
 if __name__ == '__main__':
     print(f"length of train set: {len(train_set)}")
     print(f"length of test set: {len(test_set)}")
     model, train_losses, train_accs, val_losses, val_accs = training_loop(model, optimizer, loss_fn, train_dataloader,
-                                                                          test_dataloader, num_epochs, print_every=1000)
+                                                                          test_dataloader, num_epochs, print_every=1000,
+                                                                          patience=50)
     train_val_plots(train_losses, train_accs, val_losses, val_accs, num_epochs)
-    confmatrix(model, test_dataloader, num_classes)
+    confmatrix(model, test_dataloader)
+    image_predictions(model, test_set, 5)
     plt.show()
 
 # TODO: Save model and data after each run
 # TODO: Visualize class imbalance (there is some)
 # TODO: Weight classes so we learn from classes with less data
+# TODO: Doesnt save model until 50 epochs
 # I get like 90% train acc but val acc wont go over 60%....
