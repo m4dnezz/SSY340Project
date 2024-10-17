@@ -11,16 +11,17 @@ from matplotlib import pyplot as plt
 train_path = "./FER2013/train"
 test_path = "./FER2013/test"
 
-batch_size = 128
+batch_size = 64
 
 train_trans = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),  # Convert to single-channel grayscale
     transforms.Resize((48, 48)),  # Resize to ensure uniform size
     transforms.RandomHorizontalFlip(p=0.5),  # Randomly flip horizontally
-    transforms.RandomRotation(degrees=5),  # Rotate within ±10 degrees
-    transforms.RandomAffine(degrees=0, translate=(0.05, 0.05)),  # Slight translation
+    transforms.RandomRotation(degrees=10),  # Rotate within ±10 degrees
+    transforms.RandomAffine(degrees=10, translate=(0.1, 0.1)),  # Slight translation
     transforms.RandomCrop(48, padding=4),  # Crop with padding
     transforms.ColorJitter(brightness=0.1, contrast=0.1),  # Adjust brightness and contrast
+    transforms.RandomPerspective(distortion_scale=0.1),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.5], std=[0.5])  # Normalize for grayscale
 ])
@@ -52,7 +53,7 @@ test_dataloader = DataLoader(test_set, batch_size, shuffle=True, num_workers=wor
 # test_dataloader = DataLoader(small_test_set, batch_size, shuffle=True, num_workers=workers, pin_memory=True, prefetch_factor=2, persistent_workers=True)
 
 # Model setup
-num_epochs = 200  # For testing
+num_epochs = 500  # For testing
 num_classes = 7
 model = ConvNeuralNet(num_classes)
 
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     print(f"length of test set: {len(test_set)}")
     model, train_losses, train_accs, val_losses, val_accs = training_loop(model, optimizer, loss_fn, train_dataloader,
                                                                           test_dataloader, num_epochs, print_every=1000,
-                                                                          patience=100)
+                                                                          patience=50)
     train_val_plots(train_losses, train_accs, val_losses, val_accs, num_epochs)
     confmatrix(model, test_dataloader)
     image_predictions(model, test_set, numberofimages=5)
