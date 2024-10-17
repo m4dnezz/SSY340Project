@@ -26,10 +26,10 @@ class ConvNeuralNet(nn.Module):
         # Fully Connected Layers
         self.fc1 = nn.Linear(4608, 256)
         self.relu1 = nn.ReLU()
-        self.dropout1 = nn.Dropout(0.5)
+        self.dropout1 = nn.Dropout(0.2)
         self.fc2 = nn.Linear(256, 128)
         self.relu2 = nn.ReLU()
-        self.dropout2 = nn.Dropout(0.5)
+        self.dropout2 = nn.Dropout(0.2)
         self.fc3 = nn.Linear(128, num_classes)
 
     def forward(self, x):
