@@ -4,6 +4,7 @@ from time import gmtime, strftime
 from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
+import random
 
 
 class EarlyStopping:
@@ -44,13 +45,13 @@ def output_to_label(z):
 
 
 def training_loop(
-    model, optimizer, loss_fn, train_loader, val_loader, num_epochs, print_every
+    model, optimizer, loss_fn, train_loader, val_loader, num_epochs, print_every, patience
 ):
     print("Starting training")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     train_losses, train_accs, val_losses, val_accs = [], [], [], []
-    early_stopper = EarlyStopping(patience=100, verbose=True)
+    early_stopper = EarlyStopping(patience=patience, verbose=True)
 
     for epoch in range(1, num_epochs + 1):
         model, train_loss, train_acc = train_epoch(
@@ -157,7 +158,7 @@ def train_val_plots(train_losses, train_accs, val_losses, val_accs, num_epochs):
     plt.tight_layout()
 
 
-def confmatrix(model, test_dataloader, num_classes):
+def confmatrix(model, test_dataloader):
     model.eval()
     all_preds = []
     all_labels = []
@@ -171,11 +172,43 @@ def confmatrix(model, test_dataloader, num_classes):
             all_labels.extend(labels.cpu().numpy())
 
     # Calculate and plot confusion matrix
-    conf_mat = confusion_matrix(all_labels, all_preds)
+    conf_mat = confusion_matrix(all_labels, all_preds, normalize='true')
 
     # Plot the confusion matrix
+    labels = ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprised"]
     plt.figure(figsize=(8, 6))
-    sns.heatmap(conf_mat, annot=True, fmt='d', cmap='Blues', xticklabels=range(num_classes), yticklabels=range(num_classes))
+    sns.heatmap(conf_mat, annot=True, fmt='.2%', cmap='Blues', xticklabels=labels, yticklabels=labels)
     plt.xlabel('Predicted Labels')
     plt.ylabel('True Labels')
     plt.title('Confusion Matrix')
+
+
+def image_predictions(model, dataset, numberofimages):
+    # Check if CUDA (GPU) is available and move model to GPU if possible
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    model.eval()
+
+    with torch.no_grad():
+        fig, axes = plt.subplots(1, numberofimages)
+        labels = ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprised"]
+        for i in range(numberofimages):
+            random_index = random.randint(0, len(dataset) - 1)
+            image, label = dataset[random_index]
+
+            image = image.to(device)
+            image_input = image.unsqueeze(0)
+
+            output = model(image_input)
+            prediction = output.argmax(dim=1).item()
+
+            # Move image back to CPU for display
+            image_np = image.cpu().numpy().transpose(1, 2, 0)
+
+            # Display the image in the ith subplot
+            axes[i].imshow(np.squeeze(image_np), cmap="gray")
+            axes[i].set_title(f"True: {labels[label]}, Predicted: {labels[prediction]}")
+            axes[i].axis('off')
+
+        plt.tight_layout()
+        plt.show()
