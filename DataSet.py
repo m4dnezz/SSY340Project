@@ -2,6 +2,8 @@ from torch.utils.data import Dataset
 from itertools import chain
 from PIL import Image
 from path import Path
+from matplotlib import pyplot as plt
+import numpy as np
 
 
 class FER2013(Dataset):
@@ -109,3 +111,9 @@ class FER2013(Dataset):
         """
         id_index = [path.stem for (path, _) in self._samples].index(id_)
         return self[id_index]
+
+    def show_image(self, index):
+        img, label = self.__getitem__(index)
+        plt.imshow(np.squeeze(img), cmap='grey')
+        plt.title(f"index: {index}, label: {label}")
+        plt.show()
