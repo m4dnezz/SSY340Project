@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
 import random
+import os
 
 
 class EarlyStopping:
@@ -14,17 +15,27 @@ class EarlyStopping:
         self.counter = 0
         self.best_loss = None
         self.early_stop = False
+        if os.path.isfile("./best_val_loss"):
+            self.best_val_loss = torch.load("best_val_loss")
+            print(f"Early stopping is active with patience: {patience}")
+            print(f"Wont overwrite best model untill loss i lower than: {self.best_val_loss}")
+        else:
+            self.best_val_loss = 100
 
     def __call__(self, val_loss, model):
         if self.best_loss is None:
             self.best_loss = val_loss
+
         elif val_loss < self.best_loss:
             self.best_loss = val_loss
             self.counter = 0
             # Save the best model
-            torch.save(model.state_dict(), 'best_model.pth')
-            if self.verbose:
-                print(f'Validation loss improved to {val_loss:.4f}. Saving model...')
+            if val_loss < self.best_val_loss:
+                self.best_val_loss = val_loss
+                torch.save(model.state_dict(), 'best_model.pth')
+                torch.save(val_loss, "best_val_loss")
+                if self.verbose:
+                    print(f'Validation loss improved to {val_loss:.4f}. Saving model...')
         else:
             self.counter += 1
             if self.counter >= self.patience:
@@ -65,16 +76,15 @@ def training_loop(
             f"Val. loss: {val_loss:.3f}, "
             f"Val. acc.: {val_acc:.3f}"
         )
-        train_losses.extend(train_loss)
-        train_accs.extend(train_acc)
+        train_losses.append(sum(train_loss)/len(train_loss))
+        train_accs.append(sum(train_acc)/len(train_acc))
         val_losses.append(val_loss)
         val_accs.append(val_acc)
 
         # Check for early stopping
-        if epoch > 50:
-            early_stopper(val_loss, model)
-            if early_stopper.early_stop:
-                break  # Exit
+        early_stopper(val_loss, model)
+        if early_stopper.early_stop:
+            break  # Exit
     return model, train_losses, train_accs, val_losses, val_accs
 
 
