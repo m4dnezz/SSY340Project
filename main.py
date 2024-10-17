@@ -11,12 +11,12 @@ from matplotlib import pyplot as plt
 train_path = "./FER2013/train"
 test_path = "./FER2013/test"
 
-batch_size = 64
+batch_size = 128
 
 train_trans = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),  # Convert to single-channel grayscale
     transforms.Resize((48, 48)),  # Resize to ensure uniform size
-    transforms.RandomHorizontalFlip(p=0.2),  # Randomly flip horizontally
+    transforms.RandomHorizontalFlip(p=0.5),  # Randomly flip horizontally
     transforms.RandomRotation(degrees=5),  # Rotate within ±10 degrees
     transforms.RandomAffine(degrees=0, translate=(0.05, 0.05)),  # Slight translation
     transforms.RandomCrop(48, padding=4),  # Crop with padding
@@ -67,10 +67,10 @@ if __name__ == '__main__':
     print(f"length of test set: {len(test_set)}")
     model, train_losses, train_accs, val_losses, val_accs = training_loop(model, optimizer, loss_fn, train_dataloader,
                                                                           test_dataloader, num_epochs, print_every=1000,
-                                                                          patience=50)
+                                                                          patience=100)
     train_val_plots(train_losses, train_accs, val_losses, val_accs, num_epochs)
     confmatrix(model, test_dataloader)
-    image_predictions(model, test_set, 5)
+    image_predictions(model, test_set, numberofimages=5)
     plt.show()
 
 # TODO: Save model and data after each run
