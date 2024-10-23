@@ -35,20 +35,28 @@ class ConvNeuralNet(nn.Module):
     def forward(self, x):
         # First Convolutional Block
         out = self.conv_layer1(x)
+        out = self.relu1(out)
         out = self.conv_layer2(out)
+        out = self.relu1(out)
         out = self.batch_norm1(out)
         out = self.max_pool1(out)
 
         # Second Convolutional Block
         out = self.conv_layer3(out)
+        out = self.relu1(out)
         out = self.conv_layer4(out)
+        out = self.relu1(out)
         out = self.batch_norm2(out)
+        out = self.relu1(out)
         out = self.max_pool2(out)
 
         # Third Convolutional Block
         out = self.conv_layer5(out)
+        out = self.relu1(out)
         out = self.conv_layer6(out)
+        out = self.relu1(out)
         out = self.batch_norm3(out)
+        out = self.relu1(out)
         out = self.max_pool3(out)
 
         # Flatten and Fully Connected Layers
