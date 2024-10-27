@@ -2,10 +2,11 @@ import torch
 import numpy as np
 from time import gmtime, strftime
 from matplotlib import pyplot as plt
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, f1_score, recall_score, precision_score
 import seaborn as sns
 import random
 import os
+import torch.optim.lr_scheduler as lr_scheduler
 
 
 class EarlyStopping:
@@ -29,6 +30,7 @@ class EarlyStopping:
         elif val_loss < self.best_loss:
             self.best_loss = val_loss
             self.counter = 0
+            print("Resetet patience \n")
             # Save the best model
             if val_loss < self.best_val_loss:
                 self.best_val_loss = val_loss
@@ -59,6 +61,7 @@ def training_loop(
     model, optimizer, loss_fn, train_loader, val_loader, num_epochs, print_every, patience
 ):
     print("Starting training")
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.7)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     train_losses, train_accs, val_losses, val_accs = [], [], [], []
@@ -74,18 +77,19 @@ def training_loop(
             f"Train loss: {sum(train_loss)/len(train_loss):.3f}, "
             f"Train acc.: {sum(train_acc)/len(train_acc):.3f}, "
             f"Val. loss: {val_loss:.3f}, "
-            f"Val. acc.: {val_acc:.3f}"
+            f"Val. acc.: {val_acc:.3f},"
+            f"Lr.: {scheduler.get_last_lr()}"
         )
         train_losses.append(sum(train_loss)/len(train_loss))
         train_accs.append(sum(train_acc)/len(train_acc))
         val_losses.append(val_loss)
         val_accs.append(val_acc)
-
+        scheduler.step()
         # Check for early stopping
         early_stopper(val_loss, model)
         if early_stopper.early_stop:
             break  # Exit
-    return model, train_losses, train_accs, val_losses, val_accs
+    return model, train_losses, train_accs, val_losses, val_accs, epoch
 
 
 def train_epoch(
@@ -180,12 +184,16 @@ def confmatrix(model, test_dataloader):
             _, predicted = torch.max(outputs, 1)
             all_preds.extend(predicted.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
+    f1 = f1_score(all_labels, all_preds, average="weighted")
+    recall = recall_score(all_labels, all_preds, average="weighted")
+    precision = precision_score(all_labels, all_preds, average="weighted")
+    print(f"f1-score= {f1}, Recall: {recall}, Precision: {precision}")
 
+    labels = ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprised"]
     # Calculate and plot confusion matrix
     conf_mat = confusion_matrix(all_labels, all_preds, normalize='true')
 
     # Plot the confusion matrix
-    labels = ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprised"]
     plt.figure(figsize=(8, 6))
     sns.heatmap(conf_mat, annot=True, fmt='.2%', cmap='Blues', xticklabels=labels, yticklabels=labels)
     plt.xlabel('Predicted Labels')
@@ -221,4 +229,3 @@ def image_predictions(model, dataset, numberofimages):
             axes[i].axis('off')
 
         plt.tight_layout()
-        plt.show()
