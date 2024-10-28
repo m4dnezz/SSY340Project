@@ -71,6 +71,7 @@ if not cap.isOpened():
 while True:
     # Capture frame-by-frame
     ret, frame = cap.read()
+    frame = cv.flip(frame, 1)
     detect_bounding_box(frame, model)  # this function does everything lol
 
     # if frame is read correctly ret is True
